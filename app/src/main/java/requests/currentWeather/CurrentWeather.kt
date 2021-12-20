@@ -1,4 +1,4 @@
-package requests
+package requests.currentWeather
 
 data class CurrentWeather(
     val base: String,

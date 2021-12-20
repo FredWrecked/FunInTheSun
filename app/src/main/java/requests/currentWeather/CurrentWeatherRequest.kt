@@ -1,4 +1,4 @@
-package requests
+package requests.currentWeather
 
 
 import android.content.Context

@@ -7,4 +7,13 @@
     <string name="current_place_menu">CurrentPlace</string>
     <string name="option_get_place">Add Place</string>
     <string name="track_current_location">Track Current Location</string>
+
+
+    <!--components-->
+    <string name="track_weather_title">Track Weather</string>
+    <string name="track_weather_message">Would you like to track the weather at this location?</string>
+    <string name="yes">yes</string>
+    <string name="no">no</string>
+
+
 </resources>

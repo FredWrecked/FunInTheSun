@@ -15,6 +15,7 @@ package com.example.funinthesun
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
@@ -24,6 +25,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -38,13 +40,15 @@ import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
+import components.CustomDialog
+import components.TrackWeatherDialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import model.TrackedLocation
-import requests.CurrentWeatherRequest
-//import requests.CurrentWeatherRequest
+import requests.currentWeather.CurrentWeatherRequest
+//import requests.currentWeather.CurrentWeatherRequest
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -92,6 +96,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, CoroutineScope {
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment?
         mapFragment?.getMapAsync(this)
+
     }
 
     /**
@@ -123,13 +128,24 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, CoroutineScope {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.option_get_place) {
             if(map != null){
-                val sydney = LatLng(-34.0, 151.0)
-                map!!.addMarker(MarkerOptions()
-                    .position(sydney)
-                    .title("Marker in Sydney"))
-                map!!.moveCamera(CameraUpdateFactory.newLatLng(sydney))
-            }
+                map!!.setOnMapClickListener {
 
+                    val currentWeatherFinder = CurrentWeatherRequest(this)
+                    val context = this
+
+                    launch {
+                        val currentWeather = currentWeatherFinder.getData(it)
+                        TrackWeatherDialog(
+                            applicationContext = context,
+                            map = map!!,
+                            location = it,
+                            coroutineContext = coroutineContext,
+                            markerTitle = currentWeather.weather.first().description
+                        ).show()
+                    }
+
+                }
+            }
         }
         else if(item.itemId == R.id.track_current_location){
 
@@ -142,9 +158,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, CoroutineScope {
                     .title("Current Location"))
                 map!!.moveCamera(CameraUpdateFactory.newLatLng(currentLocation))
 
-                val newTrackedLocation = TrackedLocation(currentLocation)
                 val currentWeatherFinder = CurrentWeatherRequest(this)
-                val context = this
 
                 launch {
                     val currentWeather = currentWeatherFinder.getData(currentLocation)
@@ -181,6 +195,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, CoroutineScope {
                 snippet.text = marker.snippet
                 return infoWindow
             }
+
         })
 
         // Prompt the user for permission.
