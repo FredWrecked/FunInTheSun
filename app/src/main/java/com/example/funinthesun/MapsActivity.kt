@@ -127,25 +127,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, CoroutineScope {
      */
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.option_get_place) {
-            if(map != null){
-                map!!.setOnMapClickListener {
 
-                    val currentWeatherFinder = CurrentWeatherRequest(this)
-                    val context = this
-
-                    launch {
-                        val currentWeather = currentWeatherFinder.getData(it)
-                        TrackWeatherDialog(
-                            applicationContext = context,
-                            map = map!!,
-                            location = it,
-                            coroutineContext = coroutineContext,
-                            markerTitle = currentWeather.weather.first().description
-                        ).show()
-                    }
-
-                }
-            }
         }
         else if(item.itemId == R.id.track_current_location){
 
@@ -206,6 +188,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, CoroutineScope {
 
         // Get the current location of the device and set the position of the map.
         getDeviceLocation()
+
+        // Initialise location click
+        initialiseTrackLocationClick()
+    }
+
+    private fun initialiseTrackLocationClick(){
+        if(map != null){
+            map!!.setOnMapClickListener {
+                val context = this
+                TrackWeatherDialog(
+                    applicationContext = context,
+                    map = map!!,
+                    location = it,
+                    scope = CoroutineScope(this.coroutineContext)
+                ).show()
+            }
+        }
     }
 
     /**
