@@ -1,10 +1,12 @@
 package model
 
-import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
+import java.util.*
 
 class TrackedLocation(
-    private val location: LatLng,
+    val guid: String = UUID.randomUUID().toString(),
+    val name: String,
+    val marker: MarkerOptions,
+    val weatherToTrack: WeatherToTrack
     ) {
-
-
 }

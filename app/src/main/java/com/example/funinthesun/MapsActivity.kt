@@ -36,10 +36,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.GoogleMap.InfoWindowAdapter
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import components.CustomDialog
 import components.TrackWeatherDialog
 import kotlinx.coroutines.CoroutineScope
@@ -47,6 +44,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import model.TrackedLocation
+import repository.TrackedLocationRepository
 import requests.currentWeather.CurrentWeatherRequest
 //import requests.currentWeather.CurrentWeatherRequest
 import kotlin.coroutines.CoroutineContext
@@ -57,7 +55,7 @@ import kotlin.coroutines.CoroutineContext
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback, CoroutineScope {
     private var map: GoogleMap? = null
     private var cameraPosition: CameraPosition? = null
-
+    private val trackedLocationRepo: TrackedLocationRepository = TrackedLocationRepository(this)
 
     // The entry point to the Fused Location Provider.
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
@@ -126,8 +124,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, CoroutineScope {
      * @return Boolean.
      */
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == R.id.option_get_place) {
-
+        if (item.itemId == R.id.option_show_all_tracked_locations) {
+            if(map != null){
+                map!!.clear()
+                val trackedLocationMarkers = trackedLocationRepo.readAll().map{ it.marker }
+                trackedLocationMarkers.forEach {
+                    map!!.addMarker(it)
+                }
+                val bounds = boundsFromLatLngList(trackedLocationMarkers.map{it.position})
+                map!!.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
+            }
         }
         else if(item.itemId == R.id.track_current_location){
 
@@ -135,17 +141,27 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, CoroutineScope {
                 val currentLocation = LatLng(lastKnownLocation!!.latitude,
                     lastKnownLocation!!.longitude)
 
-                map!!.addMarker(MarkerOptions()
-                    .position(currentLocation)
-                    .title("Current Location"))
+                TrackWeatherDialog(
+                    applicationContext = this,
+                    map = map!!,
+                    location = currentLocation,
+                    scope = CoroutineScope(coroutineContext),
+                    trackedLocationRepository = trackedLocationRepo
+                ).trackWeather()
+
                 map!!.moveCamera(CameraUpdateFactory.newLatLng(currentLocation))
 
-                val currentWeatherFinder = CurrentWeatherRequest(this)
-
-                launch {
-                    val currentWeather = currentWeatherFinder.getData(currentLocation)
-                    println(currentWeather.weather.first().description)
-                }
+//                map!!.addMarker(MarkerOptions()
+//                    .position(currentLocation)
+//                    .title("Current Location"))
+//                map!!.moveCamera(CameraUpdateFactory.newLatLng(currentLocation))
+//
+//                val currentWeatherFinder = CurrentWeatherRequest(this)
+//
+//                launch {
+//                    val currentWeather = currentWeatherFinder.getData(currentLocation)
+//                    println(currentWeather.weather.first().description)
+//                }
 
             }
         }
@@ -196,13 +212,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, CoroutineScope {
     private fun initialiseTrackLocationClick(){
         if(map != null){
             map!!.setOnMapClickListener {
-                val context = this
                 TrackWeatherDialog(
-                    applicationContext = context,
+                    applicationContext = this,
                     map = map!!,
                     location = it,
-                    scope = CoroutineScope(this.coroutineContext)
-                ).show()
+                    scope = CoroutineScope(coroutineContext),
+                    trackedLocationRepository = trackedLocationRepo
+                ).trackWeather()
             }
         }
     }
@@ -304,6 +320,25 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, CoroutineScope {
         } catch (e: SecurityException) {
             Log.e("Exception: %s", e.message, e)
         }
+    }
+
+    private fun boundsFromLatLngList(list: List<LatLng>): LatLngBounds {
+        assert(list.isNotEmpty())
+        var x0: Double = list.first().latitude
+        var x1: Double = list.first().latitude
+        var y0: Double = list.first().longitude
+        var y1: Double = list.first().longitude
+        list.forEach { latLng ->
+            if (latLng.latitude > x1) x1 = latLng.latitude;
+            if (latLng.latitude < x0) x0 = latLng.latitude;
+            if (latLng.longitude > y1) y1 = latLng.longitude;
+            if (latLng.longitude < y0) y0 = latLng.longitude;
+        }
+
+        println("southwest: $x0,$y0")
+        println("southwest: $x1,$y1")
+
+        return LatLngBounds(LatLng(x0, y0),LatLng(x1, y1))
     }
 
     companion object {

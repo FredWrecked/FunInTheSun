@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="no_results_found">No results corresponding to the search criteria could be found in memory</string>
+    <string name="multiple_results_found_one_expected">Multiple results corresponding to the search criteria could be found in memory, only one is expected</string>
+
+</resources>
