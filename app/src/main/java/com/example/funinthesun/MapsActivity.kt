@@ -17,12 +17,12 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.pm.PackageManager
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
-import android.view.Menu
-import android.view.MenuItem
-import android.view.View
+import android.view.*
 import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -128,23 +128,24 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, CoroutineScope {
         if (item.itemId == R.id.option_show_all_tracked_locations) {
             if(map != null){
                 map!!.clear()
-                val trackedLocations = trackedLocationRepo.readAll().map{ it.location }
+                val trackedLocations = trackedLocationRepo.readAll()
 
-                trackedLocations.forEach { location ->
+                trackedLocations.forEach { trackedLocation ->
                     launch {
-                        val currentWeather = CurrentWeatherRequest(applicationContext).getData(location)
+                        val currentWeather = CurrentWeatherRequest(applicationContext).getData(trackedLocation.location)
                         val weatherMarker = MarkerOptions()
-                        weatherMarker.position(location)
+                        weatherMarker.position(trackedLocation.location)
                         weatherMarker.title(currentWeather.weather.first().description)
                         WeatherMarker().setWeatherMarker(
                             icon = currentWeather.weather.first().icon,
                             map = map!!,
-                            marker = weatherMarker
+                            marker = weatherMarker,
+                            trackedLocation = trackedLocation
                         )
                     }
                 }
 
-                val bounds = boundsFromLatLngList(trackedLocations)
+                val bounds = boundsFromLatLngList(trackedLocations.map { it.location })
                 map!!.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
             }
         }

@@ -35,18 +35,21 @@ class TrackWeatherDialog(
                 weatherMarker.position(location)
 
                 weatherMarker.title(currentWeather.weather.first().description)
-                WeatherMarker().setWeatherMarker(
-                    icon = currentWeather.weather.first().icon,
-                    map = map,
-                    marker = weatherMarker
-                )
 
                 val trackedLocation = TrackedLocation(
                     name = "Tracked Location",
                     location = location,
                     weatherToTrack = WeatherToTrack(currentWeather.weather.first().description)
                 )
+
                 trackedLocationRepository.add(trackedLocation)
+
+                WeatherMarker().setWeatherMarker(
+                    icon = currentWeather.weather.first().icon,
+                    map = map,
+                    marker = weatherMarker,
+                    trackedLocation = trackedLocation
+                )
             }
 
         }

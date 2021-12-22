@@ -8,21 +8,24 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.MarkerOptions
 import com.squareup.picasso.Picasso
 import com.squareup.picasso.Target
+import model.TrackedLocation
 import java.lang.Exception
 
 
 class WeatherMarker {
-    fun setWeatherMarker(icon: String, marker: MarkerOptions, map: GoogleMap) {
+    fun setWeatherMarker(icon: String, marker: MarkerOptions, map: GoogleMap, trackedLocation: TrackedLocation) {
         val url = "http://openweathermap.org/img/wn/${icon}@2x.png"
         println("url:${url}")
-        Picasso.get().load(url).into(PicassoMarker(map,marker))
+        Picasso.get().load(url).into(PicassoMarker(map,marker,trackedLocation))
     }
 }
 
 
 class PicassoMarker(
     private val map: GoogleMap,
-    private val marker: MarkerOptions) : Target {
+    private val marker: MarkerOptions,
+    private val trackedLocation: TrackedLocation
+    ) : Target {
 
     override fun onPrepareLoad(placeHolderDrawable: Drawable?) {
         println("picassoMarker onPrepareLoad : ")
@@ -36,7 +39,8 @@ class PicassoMarker(
         try {
             if (bitmap != null) {
                 marker.icon(BitmapDescriptorFactory.fromBitmap(bitmap))
-                map.addMarker(marker)
+                val weatherMarker = map.addMarker(marker)
+                weatherMarker?.tag = trackedLocation
             }
         } catch (ex: IllegalArgumentException) {
             Exception("Marker is dead")
