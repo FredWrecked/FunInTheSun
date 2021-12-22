@@ -45,6 +45,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import model.TrackedLocation
 import repository.TrackedLocationRepository
+import requests.WeatherMarker.WeatherMarker
 import requests.currentWeather.CurrentWeatherRequest
 //import requests.currentWeather.CurrentWeatherRequest
 import kotlin.coroutines.CoroutineContext
@@ -127,11 +128,23 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, CoroutineScope {
         if (item.itemId == R.id.option_show_all_tracked_locations) {
             if(map != null){
                 map!!.clear()
-                val trackedLocationMarkers = trackedLocationRepo.readAll().map{ it.marker }
-                trackedLocationMarkers.forEach {
-                    map!!.addMarker(it)
+                val trackedLocations = trackedLocationRepo.readAll().map{ it.location }
+
+                trackedLocations.forEach { location ->
+                    launch {
+                        val currentWeather = CurrentWeatherRequest(applicationContext).getData(location)
+                        val weatherMarker = MarkerOptions()
+                        weatherMarker.position(location)
+                        weatherMarker.title(currentWeather.weather.first().description)
+                        WeatherMarker().setWeatherMarker(
+                            icon = currentWeather.weather.first().icon,
+                            map = map!!,
+                            marker = weatherMarker
+                        )
+                    }
                 }
-                val bounds = boundsFromLatLngList(trackedLocationMarkers.map{it.position})
+
+                val bounds = boundsFromLatLngList(trackedLocations)
                 map!!.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
             }
         }
@@ -144,24 +157,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, CoroutineScope {
                 TrackWeatherDialog(
                     applicationContext = this,
                     map = map!!,
-                    location = currentLocation,
                     scope = CoroutineScope(coroutineContext),
                     trackedLocationRepository = trackedLocationRepo
-                ).trackWeather()
+                ).trackWeather(currentLocation)
 
                 map!!.moveCamera(CameraUpdateFactory.newLatLng(currentLocation))
-
-//                map!!.addMarker(MarkerOptions()
-//                    .position(currentLocation)
-//                    .title("Current Location"))
-//                map!!.moveCamera(CameraUpdateFactory.newLatLng(currentLocation))
-//
-//                val currentWeatherFinder = CurrentWeatherRequest(this)
-//
-//                launch {
-//                    val currentWeather = currentWeatherFinder.getData(currentLocation)
-//                    println(currentWeather.weather.first().description)
-//                }
 
             }
         }
@@ -215,10 +215,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, CoroutineScope {
                 TrackWeatherDialog(
                     applicationContext = this,
                     map = map!!,
-                    location = it,
                     scope = CoroutineScope(coroutineContext),
                     trackedLocationRepository = trackedLocationRepo
-                ).trackWeather()
+                ).trackWeather(it)
             }
         }
     }
