@@ -24,14 +24,14 @@ class CurrentWeatherRequest(
                 "appid=${context.getText(R.string.open_weather_key)}"
 
         val stringRequest = StringRequest(Request.Method.GET, url,
-
             {response ->
                 val gson = Gson()
                 val currentWeather = gson.fromJson(response, CurrentWeather::class.java)
                 cont.resume(currentWeather)
             },
-
-            {throw Exception("Weather API failed to respond")})
+            {error ->
+                throw Exception(error.localizedMessage)
+            })
 
         queue.add(stringRequest)
     }

@@ -23,9 +23,7 @@ import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import android.view.*
-import android.widget.FrameLayout
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -49,11 +47,16 @@ import requests.WeatherMarker.WeatherMarker
 import requests.currentWeather.CurrentWeatherRequest
 //import requests.currentWeather.CurrentWeatherRequest
 import kotlin.coroutines.CoroutineContext
+import com.google.android.gms.maps.Projection
+
+
+
 
 /**
  * An activity that displays a map showing the place at the device's current location.
  */
-class MapsActivity : AppCompatActivity(), OnMapReadyCallback, CoroutineScope {
+class MapsActivity : AppCompatActivity(), OnMapReadyCallback, CoroutineScope,
+    GoogleMap.OnMarkerClickListener {
     private var map: GoogleMap? = null
     private var cameraPosition: CameraPosition? = null
     private val trackedLocationRepo: TrackedLocationRepository = TrackedLocationRepository(this)
@@ -74,6 +77,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, CoroutineScope {
     override val coroutineContext: CoroutineContext
         get() = job + Dispatchers.Main
 
+
+    lateinit var transparentView : View
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -91,10 +97,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, CoroutineScope {
         // Construct a FusedLocationProviderClient.
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
 
+
         // Build the map.
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment?
         mapFragment?.getMapAsync(this)
+
+        val  mMapViewRoot: RelativeLayout = findViewById(R.id.mapview_root)
+        transparentView = View.inflate(this, R.layout.transparent_view, mMapViewRoot)
+        registerForContextMenu(transparentView)
 
     }
 
@@ -116,6 +127,22 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, CoroutineScope {
      */
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.current_place_menu, menu)
+        return true
+    }
+
+    override fun onCreateContextMenu(
+        menu: ContextMenu?,
+        v: View?,
+        menuInfo: ContextMenu.ContextMenuInfo?
+    ) {
+        super.onCreateContextMenu(menu, v, menuInfo)
+        menuInflater.inflate(R.menu.edit_tracked_location_menu,menu)
+    }
+
+    override fun onMarkerClick(marker: Marker): Boolean {
+        if(map!=null){
+            openContextMenu(transparentView)
+        }
         return true
     }
 
@@ -166,7 +193,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, CoroutineScope {
 
             }
         }
-        return true
+
+        when(item.itemId){
+            R.id.item_1 -> Toast.makeText(this,"item 1",Toast.LENGTH_SHORT).show()
+            R.id.item_2 -> Toast.makeText(this,"item 2",Toast.LENGTH_SHORT).show()
+            R.id.item_3 -> Toast.makeText(this,"item 3",Toast.LENGTH_SHORT).show()
+            R.id.item_4 -> Toast.makeText(this,"item 4",Toast.LENGTH_SHORT).show()
+            else -> Toast.makeText(this,"else",Toast.LENGTH_SHORT).show()
+        }
+        return super.onOptionsItemSelected(item)
+
+
     }
 
     /**
@@ -187,7 +224,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, CoroutineScope {
             override fun getInfoContents(marker: Marker): View {
                 // Inflate the layouts for the info window, title and snippet.
                 val infoWindow = layoutInflater.inflate(R.layout.custom_info_contents,
-                    findViewById<FrameLayout>(R.id.map), false)
+                    findViewById<FrameLayout>(R.id.mapview_root), false)
                 val title = infoWindow.findViewById<TextView>(R.id.title)
                 title.text = marker.title
                 val snippet = infoWindow.findViewById<TextView>(R.id.snippet)
@@ -208,6 +245,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, CoroutineScope {
 
         // Initialise location click
         initialiseTrackLocationClick()
+
+        // Set a listener for marker click.
+        map.setOnMarkerClickListener(this)
     }
 
     private fun initialiseTrackLocationClick(){
@@ -358,6 +398,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, CoroutineScope {
         super.onDestroy()
         job.cancel()
     }
+
+
 }
 
     

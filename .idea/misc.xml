@@ -4,11 +4,13 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/Users/FBakker/AndroidStudioProjects/FunInTheSun/app/src/debug/res/menu/current_place_menu.xml" value="0.1421875" />
+        <entry key="..\:/Users/FBakker/AndroidStudioProjects/FunInTheSun/app/src/debug/res/menu/edit_tracked_location_menu.xml" value="0.18645833333333334" />
         <entry key="..\:/Users/FBakker/AndroidStudioProjects/FunInTheSun/app/src/debug/res/menu/track_location_menu.xml" value="0.259375" />
         <entry key="..\:/Users/FBakker/AndroidStudioProjects/FunInTheSun/app/src/debug/res/menu/tracked_location_menu.xml" value="0.18645833333333334" />
         <entry key="..\:/Users/FBakker/AndroidStudioProjects/FunInTheSun/app/src/main/res/layout/activity_maps.xml" value="0.1421875" />
         <entry key="..\:/Users/FBakker/AndroidStudioProjects/FunInTheSun/app/src/main/res/layout/constraint_layout.xml" value="0.15625" />
         <entry key="..\:/Users/FBakker/AndroidStudioProjects/FunInTheSun/app/src/main/res/layout/custom_info_contents.xml" value="0.15625" />
+        <entry key="..\:/Users/FBakker/AndroidStudioProjects/FunInTheSun/app/src/main/res/layout/transparent_layout.xml" value="0.14175724637681159" />
       </map>
     </option>
   </component>
